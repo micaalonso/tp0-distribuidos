@@ -52,7 +52,7 @@ def main():
     server = Server(port, listen_backlog)
 
     def sigterm_handler(signum = None, frame = None):
-        print("Received SIGTERM, shutting down...")
+        server.shutdown()
         sys.exit(0)
 
     signal.signal(signal.SIGTERM, sigterm_handler)
