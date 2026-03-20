@@ -70,5 +70,9 @@ class Server:
         print("Received SIGTERM, shutting down...")
         self.running = False
         if self._server_socket:
-            self._server_socket.close()
+            try:
+                self._server_socket.close()
+                logging.info('action: close_server_socket | result: success')
+            except OSError as e:
+                logging.error("action: close_server_socket | result: fail | error: {e}")
         return 0
