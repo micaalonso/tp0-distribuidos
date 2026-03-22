@@ -40,6 +40,13 @@ func InitConfig() (*viper.Viper, error) {
 	v.BindEnv("loop", "amount")
 	v.BindEnv("log", "level")
 
+	// Bet variables
+	v.BindEnv("NOMBRE")
+	v.BindEnv("APELLIDO")
+	v.BindEnv("DOCUMENTO")
+	v.BindEnv("NACIMIENTO")
+	v.BindEnv("NUMERO")
+
 	// Try to read configuration from config file. If config file
 	// does not exists then ReadInConfig will fail but configuration
 	// can be loaded from the environment variables so we shouldn't
@@ -111,6 +118,24 @@ func main() {
 		LoopAmount:    v.GetInt("loop.amount"),
 		LoopPeriod:    v.GetDuration("loop.period"),
 	}
+
+	// Se arma la apuesta del cliente
+	bet := common.Bet{
+		Name: v.GetString("NOMBRE"),
+		Surname: v.GetString("APELLIDO"),
+		Document: v.GetInt("DOCUMENTO"),
+		Birthday: v.GetString("NACIMIENTO"),
+		Number: v.GetInt("NUMERO"),
+	}
+
+	// Log de debug (despues sacar)
+	log.Infof("action: bet | result: success | NAME: %s | SURNAME: %s | DOCUMENT: %v | BIRTHDAT: %s | NUMBER: %v",
+		bet.Name,
+		bet.Surname,
+		bet.Document,
+		bet.Birthday,
+		bet.Number,
+	)
 
 	sigterm_channel := make(chan os.Signal, 1)
 	signal.Notify(sigterm_channel, syscall.SIGTERM)
