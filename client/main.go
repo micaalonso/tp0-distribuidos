@@ -139,6 +139,6 @@ func main() {
 
 	sigterm_channel := make(chan os.Signal, 1)
 	signal.Notify(sigterm_channel, syscall.SIGTERM)
-	client := common.NewClient(clientConfig)
+	client := common.NewClient(clientConfig, bet)
 	client.StartClientLoop(sigterm_channel)
 }
