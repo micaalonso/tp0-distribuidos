@@ -5,6 +5,7 @@ import (
 	"net"
 	"strings"
 	"bufio"
+	"strconv"
 	"encoding/binary"
 )
 
@@ -14,8 +15,7 @@ const NUMBER_INDEX = 1
 const FINISHED_MESSAGE = "Finished"
 
 type AckAnswer struct {
-	Document  string
-	Number 	  string
+	Amount  int
 }
 
 func send_bet(bet Bet, conn net.Conn) error {
@@ -70,15 +70,14 @@ func read_ack(conn net.Conn) (AckAnswer, error) {
 
 	msg = strings.TrimSpace(msg)
 
-	parts := strings.Split(msg, "|")
-	if len(parts) != EXPECTED_NUM_PARTS {
-		log.Errorf("action: read_ack | result: fail | invalid ack format: %v", msg)
-		return AckAnswer{}, fmt.Errorf("Invalid ACK format")
+	amount_bets, err := strconv.Atoi(msg)
+	if err != nil {
+		log.Errorf("action: read_ack | result: fail | invalid amount_bets: %v", err)
+		return AckAnswer{}, err
 	}
 
 	ack := AckAnswer{
-		Document: parts[DOCUMENT_INDEX],
-		Number:   parts[NUMBER_INDEX],
+		Amount: amount_bets,
 	}
 	return ack, nil
 }

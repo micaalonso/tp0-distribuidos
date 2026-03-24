@@ -66,5 +66,5 @@ class Protocol:
         return message
     
     @staticmethod
-    def send_ack(socket, document, number):
-        socket.sendall("{}|{}\n".format(document, number).encode('utf-8'))
+    def send_ack(socket, amount_bets):
+        socket.sendall("{}\n".format(amount_bets).encode('utf-8'))

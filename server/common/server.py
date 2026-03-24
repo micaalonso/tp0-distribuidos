@@ -47,6 +47,11 @@ class Server:
                 client_bets, is_finished = Protocol.receive_bets(client_sock)
                 if not is_finished:
                     logging.info(f'action: apuesta_recibida | result: success | dni: {client_bets[0].document} | number: {client_bets[0].number} | total_amount: {len(client_bets)}')
+                    store_bets(client_bets)
+                    logging.info(f'action: apuesta_recibida | result: success | cantidad {len(client_bets)}')
+                    # Envío de la respuesta
+                    Protocol.send_ack(client_sock, len(client_bets))
+                    logging.info(f'action: send_ack | result: success | cantidad {len(client_bets)}')
                 else:
                     logging.info(f'recv FINISHED | total_amount: {len(client_bets)}')
                     break

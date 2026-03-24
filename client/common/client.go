@@ -4,7 +4,6 @@ import (
 	"net"
 	"time"
 	"os"
-	"strconv"
 	"bufio"
 	"io"
 	"github.com/op/go-logging"
@@ -92,7 +91,7 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
             } else {
                 log.Infof("action: send_finished | result: success | client_id: %v", c.config.ID)
             }
-            break
+            return
         }
         if err != nil {
             log.Errorf("action: next_batch | result: fail | error: %v", err)
@@ -104,6 +103,12 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
             return
         }
         log.Infof("action: send_batch | result: success | client_id: %v | amount: %v", c.config.ID, len(batch))
+
+		ack, err := read_ack(c.conn)
+		if err != nil {
+			return
+		}
+		log.Infof("action: read_ack | result: success | client_id: %v | amount: %v", c.config.ID, ack.Amount)
     }
 
 	select {
@@ -119,25 +124,3 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
 	log.Infof("action: finished_client | result: success | client_id: %v", c.config.ID)
 }
 
-func check_ack(ack AckAnswer, expected_document int, expected_number int) error {
-	recv_document, err := strconv.Atoi(ack.Document)
-	if err != nil {
-		log.Errorf("action: check_ack | result: fail | invalid document: %v", err)
-		return err
-	}
-
-	recv_number, err := strconv.Atoi(ack.Number)
-	if err != nil {
-		log.Errorf("action: check_ack | result: fail | invalid number: %v", err)
-		return err
-	}
-
-	if recv_document == expected_document && recv_number == expected_number {
-		log.Infof("action: apuesta_enviada | result: success | dni: %v | number: %v",
-			expected_document, expected_number)
-	} else {
-		log.Errorf("action: apuesta_enviada | result: fail | expected: %v|%v | got: %v|%v",
-			expected_document, expected_number, recv_document, recv_number)
-	}
-	return nil
-}
