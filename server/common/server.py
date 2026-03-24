@@ -47,10 +47,10 @@ class Server:
                 client_bets, is_finished = Protocol.receive_bets(client_sock)
                 if not is_finished:
                     store_bets(client_bets)
-                    logging.info(f'action: apuesta_recibida | result: success | cantidad {len(client_bets)}')
+                    logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(client_bets)}')
                     # Envío de la respuesta
                     Protocol.send_ack(client_sock, len(client_bets))
-                    logging.info(f'action: send_ack | result: success | cantidad {len(client_bets)}')
+                    logging.info(f'action: send_ack | result: success | cantidad: {len(client_bets)}')
                 else:
                     break
         except OSError as e:
