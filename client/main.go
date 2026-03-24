@@ -39,13 +39,7 @@ func InitConfig() (*viper.Viper, error) {
 	v.BindEnv("loop", "period")
 	v.BindEnv("loop", "amount")
 	v.BindEnv("log", "level")
-
-	// Bet variables
-	v.BindEnv("NOMBRE")
-	v.BindEnv("APELLIDO")
-	v.BindEnv("DOCUMENTO")
-	v.BindEnv("NACIMIENTO")
-	v.BindEnv("NUMERO")
+	v.BindEnv("batch", "maxAmount")
 
 	// Try to read configuration from config file. If config file
 	// does not exists then ReadInConfig will fail but configuration
@@ -90,12 +84,13 @@ func InitLogger(logLevel string) error {
 // PrintConfig Print all the configuration parameters of the program.
 // For debugging purposes only
 func PrintConfig(v *viper.Viper) {
-	log.Infof("action: config | result: success | client_id: %s | server_address: %s | loop_amount: %v | loop_period: %v | log_level: %s",
+	log.Infof("action: config | result: success | client_id: %s | server_address: %s | loop_amount: %v | loop_period: %v | log_level: %s | batch: %v",
 		v.GetString("id"),
 		v.GetString("server.address"),
 		v.GetInt("loop.amount"),
 		v.GetDuration("loop.period"),
 		v.GetString("log.level"),
+		v.GetInt("batch.maxAmount"),
 	)
 }
 
@@ -117,28 +112,11 @@ func main() {
 		ID:            v.GetString("id"),
 		LoopAmount:    v.GetInt("loop.amount"),
 		LoopPeriod:    v.GetDuration("loop.period"),
+		MaxBatchSize:   v.GetInt("batch.maxAmount"),
 	}
-
-	// Se arma la apuesta del cliente
-	bet := common.Bet{
-		Name: v.GetString("NOMBRE"),
-		Surname: v.GetString("APELLIDO"),
-		Document: v.GetInt("DOCUMENTO"),
-		Birthday: v.GetString("NACIMIENTO"),
-		Number: v.GetInt("NUMERO"),
-	}
-
-	// Log de debug (despues sacar)
-	log.Infof("action: bet | result: success | NAME: %s | SURNAME: %s | DOCUMENT: %v | BIRTHDAT: %s | NUMBER: %v",
-		bet.Name,
-		bet.Surname,
-		bet.Document,
-		bet.Birthday,
-		bet.Number,
-	)
 
 	sigterm_channel := make(chan os.Signal, 1)
 	signal.Notify(sigterm_channel, syscall.SIGTERM)
-	client := common.NewClient(clientConfig, bet)
+	client := common.NewClient(clientConfig)
 	client.StartClientLoop(sigterm_channel)
 }

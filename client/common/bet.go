@@ -6,4 +6,5 @@ type Bet struct {
 	Document    int
 	Birthday    string
 	Number 		int
+	Agency      int
 }

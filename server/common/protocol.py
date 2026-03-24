@@ -26,7 +26,32 @@ class Protocol:
             birthdate=bet_parts[BIRTHDATE_POSITION],
             number=bet_parts[NUMBER_POSITION],
         )
+    
+    @staticmethod
+    def receive_bets(socket):
+        formatted_bets = []
+        msg_lenght_recv = Protocol._receive_message(socket, MESSAGE_LENGHT_BYTES)
+        msg_lenght = struct.unpack(">H", msg_lenght_recv)[0]
 
+        bets_recv = Protocol._receive_message(socket, msg_lenght)
+        decoded_bets = bets_recv.decode()
+        bets_lines = decoded_bets.strip().split("\n") # separo las bets
+        for bet_line in bets_lines:
+            parts = bet_line.split("|")
+
+            bet = Bet(
+                first_name=parts[0],
+                last_name=parts[1],
+                document=int(parts[2]),
+                birthdate=parts[3],
+                number=int(parts[4]),
+                agency=parts[5],
+            )
+
+            formatted_bets.append(bet)
+
+        return formatted_bets
+    
     @staticmethod
     def _receive_message(socket, bytes):
         message = b""

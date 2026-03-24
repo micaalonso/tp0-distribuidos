@@ -44,15 +44,20 @@ class Server:
         """
         try:
             # Recibo de la apuesta
-            client_bet = Protocol.receive_bet(client_sock)
-            logging.info(f'action: apuesta_recibida | result: success | dni: {client_bet.document} | number: {client_bet.number}')
+            batch_cantidad = 0
+            while True:
+                client_bets = Protocol.receive_bets(client_sock)
+                logging.info(f'action: apuesta_recibida | result: success | dni: {client_bets[0].document} | number: {client_bets[0].number} | total_amount: {len(client_bets)}')
+                batch_cantidad += 1 #solo por ahora 
+                if batch_cantidad >= 3:
+                    break
 
             #Almacenamiento de la apuesta
-            store_bets([client_bet])
-            logging.info(f'action: apuesta_almacenada | result: success | dni: {client_bet.document} | number: {client_bet.number}')
+            # store_bets([client_bet])
+            # logging.info(f'action: apuesta_almacenada | result: success | dni: {client_bet.document} | number: {client_bet.number}')
             
-            # Envío de la respuesta
-            Protocol.send_ack(client_sock, client_bet.document, client_bet.number)
+            # # Envío de la respuesta
+            # Protocol.send_ack(client_sock, client_bet.document, client_bet.number)
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:

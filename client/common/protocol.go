@@ -81,3 +81,41 @@ func read_ack(conn net.Conn) (AckAnswer, error) {
 	}
 	return ack, nil
 }
+
+func send_batch(batch []Bet, conn net.Conn) error {
+	// Formateo de las apuestas
+	var builder strings.Builder
+	for _, bet := range batch {
+		line := fmt.Sprintf("%s|%s|%d|%s|%d|%d\n",
+			bet.Name,
+			bet.Surname,
+			bet.Document,
+			bet.Birthday,
+			bet.Number,
+			bet.Agency,
+		)
+		builder.WriteString(line)
+	}
+
+	formatted_batch := []byte(builder.String())
+
+	// Envío del largo del mensaje (batch) en uint16 en Big Endian
+	batch_lenght := uint16(len(formatted_batch))
+	err := binary.Write(conn, binary.BigEndian, batch_lenght)
+	if err != nil {
+		log.Errorf("action: send_batch_lenght | result: fail | error: %v", err)
+		return err
+	}
+
+	// Envío del batch
+	sent_bytes := 0
+	for sent_bytes < len(formatted_batch) {
+		num_bytes, err := conn.Write(formatted_batch[sent_bytes:])
+		if err != nil {
+			log.Errorf("action: send_batch | result: fail | error: %v", err)
+			return err
+		}
+		sent_bytes += num_bytes
+	}
+	return nil
+}

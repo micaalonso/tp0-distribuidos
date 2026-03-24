@@ -5,6 +5,8 @@ import (
 	"time"
 	"os"
 	"strconv"
+	"bufio"
+	"io"
 	"github.com/op/go-logging"
 )
 
@@ -16,6 +18,7 @@ type ClientConfig struct {
 	ServerAddress string
 	LoopAmount    int
 	LoopPeriod    time.Duration
+	MaxBatchSize  int
 }
 
 // Client Entity that encapsulates how
@@ -27,10 +30,9 @@ type Client struct {
 
 // NewClient Initializes a new client receiving the configuration
 // as a parameter
-func NewClient(config ClientConfig, bet Bet) *Client {
+func NewClient(config ClientConfig) *Client {
 	client := &Client{
 		config: config,
-		bet:    bet,
 	}
 	return client
 }
@@ -59,24 +61,58 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
 		log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 		return
 	}
-	
+
 	// Create the connection the server in every loop iteration. Send an
 	c.createClientSocket()
+	defer c.conn.Close()
 
-	if send_bet(c.bet, c.conn) != nil {
-		return
-	}
-
-	ack, err := read_ack(c.conn)
+	file, err := os.Open("/data/agency-" + c.config.ID + ".csv")
 	if err != nil {
+		log.Errorf("action: open_csv | result: fail | error: %v", err)
 		return
 	}
+	log.Infof("action: open_csv | result: success")
+	defer file.Close()
 
-	if check_ack(ack, c.bet.Document, c.bet.Number) != nil {
-		return
+	reader := bufio.NewReader(file)
+	batch_size := c.config.MaxBatchSize
+
+	for {
+		select {
+		case <-sigterm_channel:
+			log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
+			return
+		default:
+			batch, err := next_batch(reader, batch_size)
+			if err == io.EOF {
+				// Error de EOF es esperado, me indica que temriné de leer el csv
+				break
+			}
+			if err != nil {
+				log.Errorf("action: next_batch | result: fail | error: %v", err)
+				return
+			}
+
+			send_batch(batch, c.conn)
+
+			log.Infof("action: send_batch | result: success | client_id: %v", c.config.ID)
+		}
 	}
 
-	c.conn.Close()
+	// if send_bet(c.bet, c.conn) != nil {
+	// 	return
+	// }
+
+	// ack, err := read_ack(c.conn)
+	// if err != nil {
+	// 	return
+	// }
+
+	// if check_ack(ack, c.bet.Document, c.bet.Number) != nil {
+	// 	return
+	// }
+
+	// c.conn.Close()
 }
 
 func check_ack(ack AckAnswer, expected_document int, expected_number int) error {
