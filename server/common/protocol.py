@@ -36,3 +36,7 @@ class Protocol:
                 raise ConnectionError("Client socket closed")
             message += recv_bytes
         return message
+    
+    @staticmethod
+    def send_ack(socket, document):
+        socket.sendall("{}\n".format(document).encode('utf-8'))
