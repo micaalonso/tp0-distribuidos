@@ -1,13 +1,15 @@
 from .utils import Bet
 import struct
+import logging
+
 
 MESSAGE_LENGHT_BYTES = 2
-AGENCY = "1"
 FIRST_NAME_POSITION = 0
 LAST_NAME_POSITION = 1
 DOCUMENT_POSITION = 2
 BIRTHDATE_POSITION = 3
 NUMBER_POSITION = 4
+AMOUNT_BET_PARTS = 6
 
 class Protocol:
     @staticmethod
@@ -42,6 +44,10 @@ class Protocol:
         for bet_line in bets_lines:
             parts = bet_line.split("|")
 
+            if len(parts) != AMOUNT_BET_PARTS:
+                logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(formatted_bets)} | error: Invalid bet data")
+                raise ValueError("Invalid bet data")
+        
             bet = Bet(
                 first_name=parts[0],
                 last_name=parts[1],

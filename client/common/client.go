@@ -76,6 +76,9 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
 	reader := bufio.NewReader(file)
 	batch_size := c.config.MaxBatchSize
 
+	bets_send := 0
+	bets_received := 0
+
 	for {
         select {
         case <-sigterm_channel:
@@ -102,13 +105,19 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
             log.Errorf("action: send_batch | result: fail | error: %v", err)
             return
         }
+		bets_send += len(batch)
         log.Infof("action: send_batch | result: success | client_id: %v | amount: %v", c.config.ID, len(batch))
 
 		ack, err := read_ack(c.conn)
 		if err != nil {
 			return
 		}
-		log.Infof("action: read_ack | result: success | client_id: %v | amount: %v", c.config.ID, ack.Amount)
+		bets_received += ack.Amount
+		if bets_received == bets_send {
+			log.Infof("action: read_ack | result: success | client_id: %v | amount: %v", c.config.ID, ack.Amount)
+		} else {
+			log.Errorf("action: read_ack | result: fail | client_id: %v | got: %v | expected: %v", c.config.ID, ack.Amount, bets_send)
+		}
     }
 
 	select {

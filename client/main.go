@@ -119,5 +119,4 @@ func main() {
 	signal.Notify(sigterm_channel, syscall.SIGTERM)
 	client := common.NewClient(clientConfig)
 	client.StartClientLoop(sigterm_channel)
-	log.Infof("CLIENT FINISHED")
 }
