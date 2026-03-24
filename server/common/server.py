@@ -52,7 +52,7 @@ class Server:
             logging.info(f'action: apuesta_almacenada | result: success | dni: {client_bet.document} | number: {client_bet.number}')
             
             # Envío de la respuesta
-            Protocol.send_ack(client_sock, client_bet.document)
+            Protocol.send_ack(client_sock, client_bet.document, client_bet.number)
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:

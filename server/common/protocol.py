@@ -38,5 +38,5 @@ class Protocol:
         return message
     
     @staticmethod
-    def send_ack(socket, document):
-        socket.sendall("{}\n".format(document).encode('utf-8'))
+    def send_ack(socket, document, number):
+        socket.sendall("{}|{}\n".format(document, number).encode('utf-8'))

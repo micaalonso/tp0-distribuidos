@@ -1,11 +1,10 @@
 package common
 
 import (
-	"bufio"
 	"net"
 	"time"
 	"os"
-
+	"strconv"
 	"github.com/op/go-logging"
 )
 
@@ -64,30 +63,41 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
 	// Create the connection the server in every loop iteration. Send an
 	c.createClientSocket()
 
-	// TODO: Modify the send to avoid short-write
-	// fmt.Fprintf(
-	// 	c.conn,
-	// 	"[CLIENT %v] Message N°%v\n",
-	// 	c.config.ID,
-	// 	msgID,
-	// )
 	if send_bet(c.bet, c.conn) != nil {
 		return
 	}
 
-	msg, err := bufio.NewReader(c.conn).ReadString('\n')
-	c.conn.Close()
-
+	ack, err := read_ack(c.conn)
 	if err != nil {
-		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
-			c.config.ID,
-			err,
-		)
 		return
 	}
 
-	log.Infof("action: receive_message | result: success | client_id: %v | msg: %v",
-		c.config.ID,
-		msg,
-	)
+	if check_ack(ack, c.bet.Document, c.bet.Number) != nil {
+		return
+	}
+
+	c.conn.Close()
+}
+
+func check_ack(ack AckAnswer, expected_document int, expected_number int) error {
+	recv_document, err := strconv.Atoi(ack.Document)
+	if err != nil {
+		log.Errorf("action: check_ack | result: fail | invalid document: %v", err)
+		return err
+	}
+
+	recv_number, err := strconv.Atoi(ack.Number)
+	if err != nil {
+		log.Errorf("action: check_ack | result: fail | invalid number: %v", err)
+		return err
+	}
+
+	if recv_document == expected_document && recv_number == expected_number {
+		log.Infof("action: apuesta_enviada | result: success | dni: %v | number: %v",
+			expected_document, expected_number)
+	} else {
+		log.Errorf("action: apuesta_enviada | result: fail | expected: %v|%v | got: %v|%v",
+			expected_document, expected_number, recv_document, recv_number)
+	}
+	return nil
 }

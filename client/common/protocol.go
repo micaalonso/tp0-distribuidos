@@ -3,8 +3,19 @@ package common
 import (
 	"fmt"
 	"net"
+	"strings"
+	"bufio"
 	"encoding/binary"
 )
+
+const EXPECTED_NUM_PARTS = 2
+const DOCUMENT_INDEX = 0
+const NUMBER_INDEX = 1
+
+type AckAnswer struct {
+	Document  string
+	Number 	  string
+}
 
 func send_bet(bet Bet, conn net.Conn) error {
 	formatted_bet := fmt.Sprintf("%s|%s|%d|%s|%d",
@@ -47,4 +58,26 @@ func send_bet(bet Bet, conn net.Conn) error {
 	)
 	return nil
 
+}
+
+func read_ack(conn net.Conn) (AckAnswer, error) {
+	msg, err := bufio.NewReader(conn).ReadString('\n')
+	if err != nil {
+		log.Errorf("action: read_ack | result: fail | error: %v", err)
+		return AckAnswer{}, err
+	}
+
+	msg = strings.TrimSpace(msg)
+
+	parts := strings.Split(msg, "|")
+	if len(parts) != EXPECTED_NUM_PARTS {
+		log.Errorf("action: read_ack | result: fail | invalid ack format: %v", msg)
+		return AckAnswer{}, fmt.Errorf("Invalid ACK format")
+	}
+
+	ack := AckAnswer{
+		Document: parts[DOCUMENT_INDEX],
+		Number:   parts[NUMBER_INDEX],
+	}
+	return ack, nil
 }
