@@ -21,7 +21,7 @@ services:
     image: client:latest
     volumes: 
       - ./client/config.yaml:/config.yaml
-      - ./.data/agency-{i}.csv:/agency.csv
+      - ./.data/agency-{i}.csv:/data/agency-{i}.csv
     entrypoint: /client
     environment:
       - CLI_ID={i}
