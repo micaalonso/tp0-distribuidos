@@ -78,41 +78,45 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
 	batch_size := c.config.MaxBatchSize
 
 	for {
-		select {
-		case <-sigterm_channel:
-			log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
-			return
-		default:
-			batch, err := next_batch(reader, batch_size, c.config.ID)
-			if err == io.EOF {
-				// Error de EOF es esperado, me indica que temriné de leer el csv
-				break
-			}
-			if err != nil {
-				log.Errorf("action: next_batch | result: fail | error: %v", err)
-				return
-			}
+        select {
+        case <-sigterm_channel:
+            log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
+            return
+        default:
+        }
 
-			send_batch(batch, c.conn)
+        batch, err := next_batch(reader, batch_size, c.config.ID)
+        if err == io.EOF {
+            if err := send_finished(c.conn); err != nil {
+                log.Errorf("action: send_finished | result: fail | error: %v |client_id: %v", err, c.config.ID)
+            } else {
+                log.Infof("action: send_finished | result: success | client_id: %v", c.config.ID)
+            }
+            break
+        }
+        if err != nil {
+            log.Errorf("action: next_batch | result: fail | error: %v", err)
+            return
+        }
 
-			log.Infof("action: send_batch | result: success | client_id: %v", c.config.ID)
-		}
-	}
+        if err := send_batch(batch, c.conn); err != nil {
+            log.Errorf("action: send_batch | result: fail | error: %v", err)
+            return
+        }
+        log.Infof("action: send_batch | result: success | client_id: %v | amount: %v", c.config.ID, len(batch))
+    }
 
-	// if send_bet(c.bet, c.conn) != nil {
-	// 	return
-	// }
+	select {
+        case <-sigterm_channel:
+            log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
+            return
+        default:
+        }
 
-	// ack, err := read_ack(c.conn)
-	// if err != nil {
-	// 	return
-	// }
-
-	// if check_ack(ack, c.bet.Document, c.bet.Number) != nil {
-	// 	return
-	// }
-
-	// c.conn.Close()
+	if c.conn != nil {
+        c.conn.Close()
+    }
+	log.Infof("action: finished_client | result: success | client_id: %v", c.config.ID)
 }
 
 func check_ack(ack AckAnswer, expected_document int, expected_number int) error {

@@ -34,7 +34,10 @@ class Protocol:
         msg_lenght = struct.unpack(">H", msg_lenght_recv)[0]
 
         bets_recv = Protocol._receive_message(socket, msg_lenght)
-        decoded_bets = bets_recv.decode()
+        decoded_bets = bets_recv.decode()   
+        if decoded_bets == "Finished":
+            return [], True
+        
         bets_lines = decoded_bets.strip().split("\n") # separo las bets
         for bet_line in bets_lines:
             parts = bet_line.split("|")
@@ -50,7 +53,7 @@ class Protocol:
 
             formatted_bets.append(bet)
 
-        return formatted_bets
+        return formatted_bets, False
     
     @staticmethod
     def _receive_message(socket, bytes):
