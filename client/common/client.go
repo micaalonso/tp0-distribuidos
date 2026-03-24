@@ -83,7 +83,7 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
 			log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 			return
 		default:
-			batch, err := next_batch(reader, batch_size)
+			batch, err := next_batch(reader, batch_size, c.config.ID)
 			if err == io.EOF {
 				// Error de EOF es esperado, me indica que temriné de leer el csv
 				break

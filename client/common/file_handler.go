@@ -15,7 +15,7 @@ const DOCUMENT_INDEX_IN_CSV = 2
 const BIRTHDATE_INDEX_IN_CSV = 3
 const NUMBER_INDEX_IN_CSV = 4
 
-func next_batch(reader *bufio.Reader, batch_size int) ([]Bet, error) {
+func next_batch(reader *bufio.Reader, batch_size int, agency_id string) ([]Bet, error) {
 	batch := make([]Bet, 0, batch_size)
 
 	for i := 0; i < batch_size; i++ {
@@ -37,7 +37,7 @@ func next_batch(reader *bufio.Reader, batch_size int) ([]Bet, error) {
 		}
 
 		// Armado de la apuesta
-		bet, err := make_bet(line)
+		bet, err := make_bet(line, agency_id)
 		if err != nil {
 			log.Errorf("action: make_bet | result: fail | error: %v", err)
 			return nil, err
@@ -52,7 +52,7 @@ func next_batch(reader *bufio.Reader, batch_size int) ([]Bet, error) {
 	return batch, nil
 }
 
-func make_bet(line string) (Bet, error) {
+func make_bet(line string, agency_id string) (Bet, error) {
 	parts := strings.Split(line, ",")
 
 	if len(parts) != CSV_PARTS {
@@ -71,12 +71,18 @@ func make_bet(line string) (Bet, error) {
 		return Bet{}, err
 	}
 
+	agency, err := strconv.Atoi(agency_id)
+	if err != nil {
+		log.Errorf("action: make_bet | result: fail | invalid agency_id: %v", err)
+		return Bet{}, err
+	}
+
 	return Bet{
 		Name:     parts[NAME_INDEX_IN_CSV],
 		Surname:  parts[SURNAME_INDEX_IN_CSV],
 		Document: document,
 		Birthday: parts[BIRTHDATE_INDEX_IN_CSV],
 		Number:   number,
-		Agency:   1, // Modificar
+		Agency:   agency,
 	}, nil
 }
