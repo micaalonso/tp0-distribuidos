@@ -12,6 +12,7 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self.running = False
+        self.clients_list = []
 
     def run(self):
         """
@@ -30,6 +31,7 @@ class Server:
         while self.running:
             try:
                 client_sock = self.__accept_new_connection()
+                self.clients_list.append(client_sock)
                 self.__handle_client_connection(client_sock)
             except:
                 if not self.running:
@@ -81,4 +83,11 @@ class Server:
                 logging.info('action: close_server_socket | result: success')
             except OSError as e:
                 logging.error("action: close_server_socket | result: fail | error: {e}")
+
+        for client_skt in self.clients_list:
+            try:
+                client_skt.close()
+                logging.info('action: close_client_socket | result: success')
+            except OSError as e:
+                logging.error("action: close_client_socket | result: fail | error: {e}")
         return 0
