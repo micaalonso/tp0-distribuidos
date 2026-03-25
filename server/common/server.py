@@ -5,6 +5,7 @@ from common.protocol import Protocol
 from common.utils import Bet, store_bets
 
 FINISHED_MSG = "Finished"
+WINNERS_REQUEST_MSG = "Winners"
 
 
 class Server:
@@ -15,6 +16,7 @@ class Server:
         self._server_socket.listen(listen_backlog)
         self.running = False
         self.clients_list = []
+        self.amount_consulting_agencies = 0
 
     def run(self):
         """
@@ -49,14 +51,11 @@ class Server:
         try:
             while True:
                 request = Protocol.receive_client_request(client_sock)
-                # if not is_finished:
-                #     store_bets(client_bets)
-                #     logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(client_bets)}')
-                #     # Envío de la respuesta
-                #     Protocol.send_ack(client_sock, len(client_bets))
-                #     logging.info(f'action: send_ack | result: success | cantidad: {len(client_bets)}')
 
                 if request == FINISHED_MSG:
+                    break
+                elif request == WINNERS_REQUEST_MSG:
+                    logging.info(f'action: recv_WINNERS_req | result: success')
                     break
                 else:
                     bets = Protocol.deserialize_bets(request)

@@ -13,6 +13,7 @@ const EXPECTED_NUM_PARTS = 2
 const DOCUMENT_INDEX = 0
 const NUMBER_INDEX = 1
 const FINISHED_MESSAGE = "Finished"
+const WINNERS_REQUEST_MESSAGE = "Winners"
 
 type AckAnswer struct {
 	Amount  int
@@ -120,27 +121,29 @@ func send_batch(batch []Bet, conn net.Conn) error {
 	return nil
 }
 
-func send_finished(conn net.Conn) error {
+func send_message(conn net.Conn, message string) error {
 
 	// Envio el largo del mensaje de fin en uint16
-	err := binary.Write(conn, binary.BigEndian, uint16(len(FINISHED_MESSAGE)))
+	err := binary.Write(conn, binary.BigEndian, uint16(len(message)))
 	if err != nil {
-		log.Errorf("action: send_leght_finished_message | result: fail | error: %v",
+		log.Errorf("action: send_message_leght | result: fail | error: %v | message: %v",
 			err,
+			message,
 		)
 		return err
 	}
 
 	// Envío del mensaje en si
-	serialized_message := []byte(FINISHED_MESSAGE)
+	serialized_message := []byte(message)
 	sent_bytes := 0
 
 	//For para asegurarnos que se envían todos los bytes del mensaje
 	for sent_bytes < len(serialized_message) {
 		num_bytes, err := conn.Write(serialized_message[sent_bytes:])
 		if err != nil {
-			log.Errorf("action: send_finished | result: fail | error: %v",
+			log.Errorf("action: send_message | result: fail | error: %v | message: %v",
 			err,
+			message,
 			)
 			return err
 		}
