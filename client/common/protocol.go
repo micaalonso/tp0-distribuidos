@@ -12,8 +12,9 @@ import (
 const EXPECTED_NUM_PARTS = 2
 const DOCUMENT_INDEX = 0
 const NUMBER_INDEX = 1
-const FINISHED_MESSAGE = "Finished"
-const WINNERS_REQUEST_MESSAGE = "Winners"
+const FINISHED_MESSAGE = 0x02
+const WINNERS_REQUEST_MESSAGE = 0x03
+const BET_MESSAGE = 0x01
 
 type AckAnswer struct {
 	Amount  int
@@ -100,6 +101,9 @@ func send_batch(batch []Bet, conn net.Conn) error {
 
 	formatted_batch := []byte(builder.String())
 
+	// Envío del byte correspondiente a los mensajes del tipo BET
+	send_type_byte(conn, BET_MESSAGE)
+	
 	// Envío del largo del mensaje (batch) en uint16 en Big Endian
 	batch_lenght := uint16(len(formatted_batch))
 	err := binary.Write(conn, binary.BigEndian, batch_lenght)
@@ -122,17 +126,6 @@ func send_batch(batch []Bet, conn net.Conn) error {
 }
 
 func send_message(conn net.Conn, message string) error {
-
-	// Envio el largo del mensaje de fin en uint16
-	err := binary.Write(conn, binary.BigEndian, uint16(len(message)))
-	if err != nil {
-		log.Errorf("action: send_message_leght | result: fail | error: %v | message: %v",
-			err,
-			message,
-		)
-		return err
-	}
-
 	// Envío del mensaje en si
 	serialized_message := []byte(message)
 	sent_bytes := 0
@@ -148,6 +141,51 @@ func send_message(conn net.Conn, message string) error {
 			return err
 		}
 		sent_bytes += num_bytes
+	}
+	return nil
+}
+
+func send_message_lenght(conn net.Conn, msg_lenght int) error {
+	err := binary.Write(conn, binary.BigEndian, uint16(msg_lenght))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func send_finished_transfer(conn net.Conn) error {
+	if err := send_type_byte(conn, FINISHED_MESSAGE); err != nil {
+		return err
+	}
+	return nil
+}
+
+func send_winners_request(conn net.Conn, agency_id string) error {
+	if err := send_type_byte(conn, WINNERS_REQUEST_MESSAGE); err != nil {
+		return err
+	}
+	
+	if err := send_message_lenght(conn, len(agency_id)); err != nil {
+		log.Errorf("action: send_message_lenght | result: fail | error: %v | message: %v",
+			err,
+			agency_id,
+			)
+	}
+
+	if err := send_message(conn, agency_id); err != nil {
+		log.Errorf("action: send_message | result: fail | error: %v | message: %v",
+			err,
+			agency_id,
+			)
+	}
+	return nil
+}
+
+func send_type_byte(conn net.Conn, byte uint8) error {
+	err := binary.Write(conn, binary.BigEndian, byte)
+	if err != nil {
+		log.Errorf("action: send_type_byte | result: fail | error: %v", err)
+		return err
 	}
 	return nil
 }

@@ -4,9 +4,9 @@ import signal
 from common.protocol import Protocol
 from common.utils import Bet, store_bets
 
-FINISHED_MSG = "Finished"
-WINNERS_REQUEST_MSG = "Winners"
-
+FINISHED_MSG = 2
+WINNERS_REQUEST_MSG = 3
+BET_MSG = 1
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -50,19 +50,28 @@ class Server:
         """
         try:
             while True:
-                request = Protocol.receive_client_request(client_sock)
+                request = Protocol.receive_client_request_type(client_sock)
 
                 if request == FINISHED_MSG:
+                    self.amount_consulting_agencies += 1
                     break
                 elif request == WINNERS_REQUEST_MSG:
-                    logging.info(f'action: recv_WINNERS_req | result: success')
+                    message = Protocol.receive_client_request(client_sock)
+                    logging.info(f'action: receive_client_request WINNERS | result: {message}')
+                    if self.amount_consulting_agencies == 3:
+                        logging.info(f'action: recv_WINNERS_req | result: success')
+                    else:
+                        logging.info(f'action: recv_WINNERS_req | result: FAIL')
                     break
-                else:
-                    bets = Protocol.deserialize_bets(request)
+                elif request == BET_MSG:
+                    message = Protocol.receive_client_request(client_sock)
+                    bets = Protocol.deserialize_bets(message)
                     Protocol.send_ack(client_sock, len(bets))
                     logging.info(f'action: send_ack | result: success | cantidad: {len(bets)}')
                     store_bets(bets)
                     logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
+                else:
+                    logging.error(f'action: receive_message | result: fail | error: Invalid request type: {request}')
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:

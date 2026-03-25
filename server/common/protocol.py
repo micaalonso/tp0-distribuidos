@@ -4,6 +4,7 @@ import logging
 
 
 MESSAGE_LENGHT_BYTES = 2
+MESSAGE_TYPE_BYTE_LENGHT = 1
 FIRST_NAME_POSITION = 0
 LAST_NAME_POSITION = 1
 DOCUMENT_POSITION = 2
@@ -13,6 +14,17 @@ AGENCY_POSITION = 5
 AMOUNT_BET_PARTS = 6
 
 class Protocol:
+    @staticmethod
+    def receive_client_request_type(socket):
+        # msg_lenght_recv = Protocol._receive_message(socket, MESSAGE_LENGHT_BYTES)
+        # msg_lenght = struct.unpack(">H", msg_lenght_recv)[0]
+
+        # msg = Protocol._receive_message(socket, msg_lenght)
+        # decoded_msg = msg.decode()
+        # return decoded_msg
+        msg_type_byte = Protocol._receive_message(socket, MESSAGE_TYPE_BYTE_LENGHT)
+        return struct.unpack(">B", msg_type_byte)[0]
+    
     @staticmethod
     def receive_client_request(socket):
         msg_lenght_recv = Protocol._receive_message(socket, MESSAGE_LENGHT_BYTES)
