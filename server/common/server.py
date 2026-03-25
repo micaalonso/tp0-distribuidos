@@ -4,6 +4,8 @@ import signal
 from common.protocol import Protocol
 from common.utils import Bet, store_bets
 
+FINISHED_MSG = "Finished"
+
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -46,15 +48,22 @@ class Server:
         """
         try:
             while True:
-                client_bets, is_finished = Protocol.receive_bets(client_sock)
-                if not is_finished:
-                    store_bets(client_bets)
-                    logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(client_bets)}')
-                    # Envío de la respuesta
-                    Protocol.send_ack(client_sock, len(client_bets))
-                    logging.info(f'action: send_ack | result: success | cantidad: {len(client_bets)}')
-                else:
+                request = Protocol.receive_client_request(client_sock)
+                # if not is_finished:
+                #     store_bets(client_bets)
+                #     logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(client_bets)}')
+                #     # Envío de la respuesta
+                #     Protocol.send_ack(client_sock, len(client_bets))
+                #     logging.info(f'action: send_ack | result: success | cantidad: {len(client_bets)}')
+
+                if request == FINISHED_MSG:
                     break
+                else:
+                    bets = Protocol.deserialize_bets(request)
+                    Protocol.send_ack(client_sock, len(bets))
+                    logging.info(f'action: send_ack | result: success | cantidad: {len(bets)}')
+                    store_bets(bets)
+                    logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:
