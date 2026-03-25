@@ -9,26 +9,10 @@ LAST_NAME_POSITION = 1
 DOCUMENT_POSITION = 2
 BIRTHDATE_POSITION = 3
 NUMBER_POSITION = 4
+AGENCY_POSITION = 5
 AMOUNT_BET_PARTS = 6
 
 class Protocol:
-    @staticmethod
-    def receive_bet(socket):
-        msg_lenght_recv = Protocol._receive_message(socket, MESSAGE_LENGHT_BYTES)
-        msg_lenght = struct.unpack(">H", msg_lenght_recv)[0]
-
-        bet_recv = Protocol._receive_message(socket, msg_lenght)
-        bet = bet_recv.decode()
-        bet_parts = bet.split("|")
-        return Bet(
-            agency=AGENCY,
-            first_name=bet_parts[FIRST_NAME_POSITION],
-            last_name=bet_parts[LAST_NAME_POSITION],
-            document=bet_parts[DOCUMENT_POSITION],
-            birthdate=bet_parts[BIRTHDATE_POSITION],
-            number=bet_parts[NUMBER_POSITION],
-        )
-    
     @staticmethod
     def receive_bets(socket):
         formatted_bets = []
@@ -49,12 +33,12 @@ class Protocol:
                 raise ValueError("Invalid bet data")
         
             bet = Bet(
-                first_name=parts[0],
-                last_name=parts[1],
-                document=int(parts[2]),
-                birthdate=parts[3],
-                number=int(parts[4]),
-                agency=parts[5],
+                first_name=parts[FIRST_NAME_POSITION],
+                last_name=parts[LAST_NAME_POSITION],
+                document=int(parts[DOCUMENT_POSITION]),
+                birthdate=parts[BIRTHDATE_POSITION],
+                number=int(parts[NUMBER_POSITION]),
+                agency=parts[AGENCY_POSITION],
             )
 
             formatted_bets.append(bet)
