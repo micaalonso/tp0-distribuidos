@@ -49,12 +49,6 @@ class Server:
         try:
             while True:
                 request = Protocol.receive_client_request(client_sock)
-                # if not is_finished:
-                #     store_bets(client_bets)
-                #     logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(client_bets)}')
-                #     # Envío de la respuesta
-                #     Protocol.send_ack(client_sock, len(client_bets))
-                #     logging.info(f'action: send_ack | result: success | cantidad: {len(client_bets)}')
 
                 if request == FINISHED_MSG:
                     break
