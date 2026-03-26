@@ -9,7 +9,7 @@ WINNERS_REQUEST_MSG = 3
 BET_MSG = 1
 
 class Server:
-    def __init__(self, port, listen_backlog):
+    def __init__(self, port, listen_backlog, amount_clients):
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
@@ -17,6 +17,7 @@ class Server:
         self.running = False
         self.clients_list = []
         self.amount_consulting_agencies = 0
+        self.amount_clients = amount_clients
 
     def run(self):
         """
@@ -58,11 +59,8 @@ class Server:
                     break
                 elif request == WINNERS_REQUEST_MSG:
                     message = Protocol.receive_client_request(client_sock)
-                    # logging.info(f'action: receive_client_request WINNERS | result: {message}')
-                    if self.amount_consulting_agencies == 5:
-                        # logging.info(f'action: recv_WINNERS_req | result: success')
+                    if self.amount_consulting_agencies == self.amount_clients:
                         bets = list(load_bets())
-                        # logging.info(f'CANT BETS: {len(bets)}')
                         winners = []
                         for bet in bets:
                             if bet.agency != int(message):
@@ -71,7 +69,6 @@ class Server:
                                 winners.append(str(bet.document))
 
                         Protocol.send_winners(client_sock, winners)
-                        # logging.info(f'action: send_winners | result: success | winners: {winners}')
                         logging.info(f'action: sorteo | result: success')
                     break
                 elif request == BET_MSG:
@@ -79,9 +76,6 @@ class Server:
                     bets = Protocol.deserialize_bets(message)
                     Protocol.send_ack(client_sock, len(bets))
                     logging.info(f'action: send_ack | result: success | cantidad: {len(bets)}')
-                    # logging.info(f'BETS {bets[0]} | {bets[1]} | {bets[2]} | {bets[3]} | {bets[4]} | {bets[5]}')
-                    # for bet in bets:
-                    #     print(vars(bet))
                     store_bets(bets)
                     logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
                 else:
