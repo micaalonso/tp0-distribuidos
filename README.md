@@ -183,3 +183,8 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación.  Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 Respetar el formato y contenido las entradas de logs descritas en los ejercicios, pues son las que se chequean en cada uno de los tests.
+
+# Solución
+
+## Ejercicio 5
+Primero, dentro del *mi-generador.py* y *docker-compose-dev.yaml*, se agregaron las variables de entorno CLI_NOMBRE, CLI_APELLIDO, CLI_DOCUMENTO, CLI_NACIMIENTO, CLI_NUMERO, y estos valores son los que representarán una apuesta del cliente. Luego, el cliente le envía su apuesta al server con el siguiente formato: `<largo_de_la_apuesta><apuesta>` donde el largo de la apuesta es un uint16 y la apuesta se formatea como `<nombre>|<apellido>|<documento>|<nacimiento>|<numero>`. Luego el servidor lee desde el socket 2 bytes (uint16) (el largo de la apuesta), y luego lee por el socket la cantidad de bytes que se le indicó. Y luego, el servidor le envía al cliente un ACK con el formato `<documento>\n` una vez que haya podido almacenar la apuesta. Al recibir este ACK, el cliente hace un check para ver si el documento que recibió coincide con el de él.
