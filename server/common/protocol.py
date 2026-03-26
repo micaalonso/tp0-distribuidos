@@ -39,7 +39,6 @@ class Protocol:
                 logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(formatted_bets)} | error: Invalid bet data")
                 raise ValueError("Invalid bet data")
             
-            # logging.info(f'PARTS: {parts}')
             bet = Bet(
                 agency=parts[AGENCY_POSITION],
                 first_name=parts[FIRST_NAME_POSITION],

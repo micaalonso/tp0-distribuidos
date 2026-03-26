@@ -12,6 +12,7 @@ import (
 var log = logging.MustGetLogger("log")
 
 const SLEEP_TIME = 100
+const RETRIES = 5
 
 // ClientConfig Configuration used by the client
 type ClientConfig struct {
@@ -121,24 +122,13 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
 		}
     }
 
-	// select {
-    //     case <-sigterm_channel:
-    //         log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
-    //         return
-    //     default:
-    //     }
-
 	if c.conn != nil {
         c.conn.Close()
     }
-
-	// c.AskForWinners(sigterm_channel)
-
-	// log.Infof("action: finished_client | result: success | client_id: %v", c.config.ID)
 }
 
 func (c *Client) AskForWinners(sigterm_channel chan os.Signal) {
-	retries := 5
+	retries := RETRIES
 	for retries > 0 {
 		select {
 			case <-sigterm_channel:
