@@ -183,3 +183,15 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación.  Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 Respetar el formato y contenido las entradas de logs descritas en los ejercicios, pues son las que se chequean en cada uno de los tests.
+
+# Solución
+
+## Ejercicio 3
+
+Para este ejercicio se armó el script *validar-echo-server.sh*. El objetivo de este script es ver que el server está funcionando correctamente, para esto se utilizó el comando **netcat** para poder enviarle un mensaje al server y ver que responda con excatamente el mismo mensaje. Para esto se arma y levanta un container alpine dentro de la misma red (tp0_testing_net, cuyo nombre corresponde con el que está en el archivo resultante luego de correr el script *generar-compose.sh*) que el servidor, y ahí se le envía un simple *hello*, y se espera que el server responda con ese mismo *"hello"*
+
+Para probar este ejercicio, primero hay que levantar los contenedores utilizando *make compose-up*, y luego:
+
+```bash
+./validar-echo-server.sh
+```
