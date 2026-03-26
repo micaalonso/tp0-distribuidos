@@ -1,6 +1,7 @@
 import socket
 import logging
 import signal
+import threading
 from common.protocol import Protocol
 from common.utils import Bet, store_bets, load_bets, has_won
 
@@ -15,9 +16,12 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self.running = False
-        self.clients_list = []
+        self.clients_list = {} # {client_socket: client_thread}
         self.amount_consulting_agencies = 0
         self.amount_clients = amount_clients
+        self.mtx = threading.Lock()
+
+
 
     def run(self):
         """
@@ -36,8 +40,9 @@ class Server:
         while self.running:
             try:
                 client_sock = self.__accept_new_connection()
-                self.clients_list.append(client_sock)
-                self.__handle_client_connection(client_sock)
+                client_thread = threading.Thread(target=self.__handle_client_connection, args=(client_sock,), daemon=False)
+                client_thread.start()
+                self.clients_list[client_sock] = client_thread
             except:
                 if not self.running:
                     break
@@ -55,28 +60,31 @@ class Server:
 
                 if request == FINISHED_MSG:
                     logging.info(f'action: receive_finished_message | result: success')
-                    self.amount_consulting_agencies += 1
+                    with self.mtx:
+                        self.amount_consulting_agencies += 1
                     break
                 elif request == WINNERS_REQUEST_MSG:
                     message = Protocol.receive_client_request(client_sock)
-                    if self.amount_consulting_agencies == int(self.amount_clients):
-                        bets = list(load_bets())
-                        winners = []
-                        for bet in bets:
-                            if bet.agency != int(message):
-                                continue
-                            if has_won(bet):
-                                winners.append(str(bet.document))
+                    with self.mtx:
+                        if self.amount_consulting_agencies == int(self.amount_clients):
+                            bets = list(load_bets())
+                            winners = []
+                            for bet in bets:
+                                if bet.agency != int(message):
+                                    continue
+                                if has_won(bet):
+                                    winners.append(str(bet.document))
 
-                        Protocol.send_winners(client_sock, winners)
-                        logging.info(f'action: sorteo | result: success')
+                            Protocol.send_winners(client_sock, winners)
+                            logging.info(f'action: sorteo | result: success')
                     break
                 elif request == BET_MSG:
                     message = Protocol.receive_client_request(client_sock)
                     bets = Protocol.deserialize_bets(message)
                     Protocol.send_ack(client_sock, len(bets))
                     logging.info(f'action: send_ack | result: success | cantidad: {len(bets)}')
-                    store_bets(bets)
+                    with self.mtx:
+                        store_bets(bets)
                     logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
                 else:
                     logging.error(f'action: receive_message | result: fail | error: Invalid request type: {request}')
@@ -84,7 +92,6 @@ class Server:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
-            self.clients_list.remove(client_sock)
 
     def __accept_new_connection(self):
         """
@@ -109,12 +116,14 @@ class Server:
                 logging.info('action: close_server_socket | result: success')
             except OSError as e:
                 logging.error("action: close_server_socket | result: fail | error: {e}")
-        
-        for client_skt in self.clients_list:
+
+        for skt, client in self.client_list.items():
             try:
-                client_skt.close()
+                skt.close()
                 logging.info('action: close_client_socket | result: success')
             except OSError as e:
                 logging.error("action: close_client_socket | result: fail | error: {e}")
+            client.end()
+            client.join()
         logging.info('action: shutdown | result: success')
         return 0
