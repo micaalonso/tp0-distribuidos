@@ -183,3 +183,9 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación.  Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 Respetar el formato y contenido las entradas de logs descritas en los ejercicios, pues son las que se chequean en cada uno de los tests.
+
+# Solución
+
+## Ejercicio 2
+
+Para este ejercicio se le agrego al generador de archivos *mi-generador.py* (archivo implementado en el ejercicio anterior) volumenes. Se agrego un volumen tanto para el servidor como al cliente con sus respectivos archivos de configuración. Esto lo que nos permite es poder modificar estos archivos de configuración sin la necesidad de volver a levantar las imágenes del server/cliente. Además, hubo que eliminar una línea del archivo *client/Dockerfile*, ya que aca se estaba copiando el archivo de configuración del cliente dentro de la imagen de este, lo cual no nos hubiese permitido actualizar la configuración.
