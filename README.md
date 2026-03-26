@@ -183,3 +183,21 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación.  Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 Respetar el formato y contenido las entradas de logs descritas en los ejercicios, pues son las que se chequean en cada uno de los tests.
+
+# Solución
+
+## Ejercicio 1
+Para este ejercicio, se implementó un script *generar-compose.sh*, el cual llama al archivo *mi-generador.py*. En *mi-generador.py* hay una función llamada *generate_output_file*, la cual genera un archivo con los diferentes contenedores a levantar (un servidor y N cantidad de clientes).
+Para probar este ejercicio, hay que pararse sobre la raíz del proyecto y ejecutar:
+
+```bash
+./generar_compose.sh <nombre del archivo> <cantidad de clientes>
+```
+
+Ejemplo:
+
+```bash
+./generar-compose.sh docker-compose-dev.yaml 5
+```
+
+Luego, si se abre el archivo generado, se podrán ver el docker-compose generado correctamente con todos los contenedores necesarios.
