@@ -160,7 +160,8 @@ func (c *Client) AskForWinners(sigterm_channel chan os.Signal) {
 
 				msg, err := read_winners(c.conn)
 				if err != nil {
-					log.Errorf("action: read_winners | result: fail | error: %v", err)
+					// Error esperado ya que el server sigue 
+					// esperando a que todas las agencias envien las apuestas
 					c.conn.Close()
 					time.Sleep(SLEEP_TIME * time.Millisecond)
 					retries -= 1
