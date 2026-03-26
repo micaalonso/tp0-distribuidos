@@ -183,3 +183,16 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación.  Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 Respetar el formato y contenido las entradas de logs descritas en los ejercicios, pues son las que se chequean en cada uno de los tests.
+
+# Solución
+
+## Ejercicio 7
+Para este ejercicio se modificó el protocolo de envío de mensajes. Ahora el cliente envía 3 tipos de mensajes: mensaje de envío de apuestas, mensaje que indica que se terminaron de enviar las apuestas, y un mensaje de pedido de solicitud de ganadores. Cada uno de estos mensajes tienen un código, el cual es un valor de 1 byte. Estos códigos son:
+- Apuestas: 0x01
+- Fin del envío de apuestas: 0x02
+- Pedido de ganadores: 0x03
+Y los mensajes:
+- Apuestas: `0x01<largo del mensaje><apuestas>`
+- Fin del envío de apuestas: `0x02`
+- Pedido de ganadores: `0x03<largo del mensaje><agency id>`
+Ante el envío de una apuesta, el server responde con la cantidad de apuestas que recibió. Y al recibir el pedido de ganadores, espera a que todas las agencias hayan terminado de enviar sus apuestas, y una vez que se cumpla esta condición, envía la lista de ganadores según agencia `<largo mensaje>ganador1|ganador2...`
