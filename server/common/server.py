@@ -59,7 +59,7 @@ class Server:
                     break
                 elif request == WINNERS_REQUEST_MSG:
                     message = Protocol.receive_client_request(client_sock)
-                    if self.amount_consulting_agencies == self.amount_clients:
+                    if self.amount_consulting_agencies == int(self.amount_clients):
                         bets = list(load_bets())
                         winners = []
                         for bet in bets:
