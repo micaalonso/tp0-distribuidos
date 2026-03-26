@@ -183,3 +183,9 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación.  Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 Respetar el formato y contenido las entradas de logs descritas en los ejercicios, pues son las que se chequean en cada uno de los tests.
+
+
+# Solución
+
+## Ejercicio 8
+Para este ejercicio, se utilizó la librería threading. Y luego, por cada vez que se una un cliente, se creará un hilo del tipo no deamon, ya que se debe esperar a que todos los hilos temrinen su ejecución para que el hilo main pueda terminar. Para evitar raise conditions de los recursos compartidos (conteo de la cantidad de agencias que terminaron y la escritura y lectura de las apuestas utilizando store_bets y load_bets) se implementaron locks.
