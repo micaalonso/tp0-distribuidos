@@ -183,3 +183,10 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación.  Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 Respetar el formato y contenido las entradas de logs descritas en los ejercicios, pues son las que se chequean en cada uno de los tests.
+
+# Solución
+
+## Ejercicio 6
+Para este ejericio, se consideró que los archivos csv están en la carpeta .data.
+Primero, se eliminaros las variables de los contenedores que se crearon en el ejericio anterior (CLI_NOMBRE, CLI_APELLIDO, etc). Luego, se agrego a los volúmenes del cliente el archivo csv correspondiente a su id. 
+El cliente va leyendo de a batches el archivo (con un máximo de *maxAmount*, valor que se puede modificar en el config). Luego, a las apuestas se le agregan el campo Agency (el cual coincide con el ID del cliente). Luego, el cliente envía el batch utilizando el mismo protocolo que el ejericio anterior, osea `<largo del mensaje><apuestas>`. Luego, cuando el cliente terminó de mandar todos los batches, envía un último mensaje "Finished".
