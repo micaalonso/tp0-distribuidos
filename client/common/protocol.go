@@ -6,6 +6,7 @@ import (
 	"strings"
 	"bufio"
 	"strconv"
+	"io"
 	"encoding/binary"
 )
 
@@ -188,4 +189,60 @@ func send_type_byte(conn net.Conn, byte uint8) error {
 		return err
 	}
 	return nil
+}
+
+// func read_winners(conn net.Conn) (string, error) {
+// 	msg, err := bufio.NewReader(conn).ReadString('\n')
+// 	if err != nil {
+// 		log.Errorf("action: read_ack | result: fail | error: %v", err)
+// 		return "", err
+// 	}
+
+// 	msg = strings.TrimSpace(msg)
+// 	return msg, nil
+// }
+
+// func read_winners(conn net.Conn) ([]string, error) {
+//     // 1. Leer length (2 bytes)
+//     var msgLength uint16
+//     err := binary.Read(conn, binary.BigEndian, &msgLength)
+//     if err != nil {
+//         return nil, err
+//     }
+
+//     // 2. Leer payload
+//     buffer := make([]byte, msgLength)
+//     _, err = io.ReadFull(conn, buffer)
+//     if err != nil {
+//         return nil, err
+//     }
+
+//     // 3. Convertir a string
+//     winnersStr := string(buffer)
+
+//     // 4. Separar por "|"
+//     winners := strings.Split(winnersStr, "|")
+
+//     return winners, nil
+// }
+
+func read_winners(conn net.Conn) ([]string, error) {
+    size := make([]byte, 2)
+	_, err := io.ReadFull(conn, size)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read winners size: %v", err)
+	}
+
+	winnersSize := int(binary.BigEndian.Uint16(size))
+	winnersData := make([]byte, winnersSize)
+	_, err = io.ReadFull(conn, winnersData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read winners data: %v", err)
+	}
+
+	if len(winnersData) == 0 {
+		return []string{}, nil
+	}
+
+	return strings.Split(string(winnersData), "|"), nil
 }

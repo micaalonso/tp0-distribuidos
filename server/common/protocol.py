@@ -16,12 +16,6 @@ AMOUNT_BET_PARTS = 6
 class Protocol:
     @staticmethod
     def receive_client_request_type(socket):
-        # msg_lenght_recv = Protocol._receive_message(socket, MESSAGE_LENGHT_BYTES)
-        # msg_lenght = struct.unpack(">H", msg_lenght_recv)[0]
-
-        # msg = Protocol._receive_message(socket, msg_lenght)
-        # decoded_msg = msg.decode()
-        # return decoded_msg
         msg_type_byte = Protocol._receive_message(socket, MESSAGE_TYPE_BYTE_LENGHT)
         return struct.unpack(">B", msg_type_byte)[0]
     
@@ -44,14 +38,15 @@ class Protocol:
             if len(parts) != AMOUNT_BET_PARTS:
                 logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(formatted_bets)} | error: Invalid bet data")
                 raise ValueError("Invalid bet data")
-        
+            
+            # logging.info(f'PARTS: {parts}')
             bet = Bet(
+                agency=parts[AGENCY_POSITION],
                 first_name=parts[FIRST_NAME_POSITION],
                 last_name=parts[LAST_NAME_POSITION],
-                document=int(parts[DOCUMENT_POSITION]),
+                document=parts[DOCUMENT_POSITION],
                 birthdate=parts[BIRTHDATE_POSITION],
-                number=int(parts[NUMBER_POSITION]),
-                agency=parts[AGENCY_POSITION],
+                number=parts[NUMBER_POSITION],
             )
 
             formatted_bets.append(bet)
@@ -71,3 +66,11 @@ class Protocol:
     @staticmethod
     def send_ack(socket, amount_bets):
         socket.sendall("{}\n".format(amount_bets).encode('utf-8'))
+
+    @staticmethod
+    def send_winners(socket, winners):
+        winners_formatted = "|".join(winners)
+        encoded_winners = winners_formatted.encode("utf-8")
+        winners_msg_lenght = len(encoded_winners)
+        size = bytes([(winners_msg_lenght >> 8) & 0xFF, winners_msg_lenght & 0xFF])
+        socket.sendall(size + encoded_winners)

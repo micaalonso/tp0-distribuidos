@@ -119,4 +119,7 @@ func main() {
 	signal.Notify(sigterm_channel, syscall.SIGTERM)
 	client := common.NewClient(clientConfig)
 	client.StartClientLoop(sigterm_channel)
+	client.AskForWinners(sigterm_channel)
+
+	log.Infof("action: finished_client | result: success | client_id: %v", clientConfig.ID)
 }

@@ -2,7 +2,7 @@ import socket
 import logging
 import signal
 from common.protocol import Protocol
-from common.utils import Bet, store_bets
+from common.utils import Bet, store_bets, load_bets, has_won
 
 FINISHED_MSG = 2
 WINNERS_REQUEST_MSG = 3
@@ -53,21 +53,35 @@ class Server:
                 request = Protocol.receive_client_request_type(client_sock)
 
                 if request == FINISHED_MSG:
+                    logging.info(f'action: receive_finished_message | result: success')
                     self.amount_consulting_agencies += 1
                     break
                 elif request == WINNERS_REQUEST_MSG:
                     message = Protocol.receive_client_request(client_sock)
-                    logging.info(f'action: receive_client_request WINNERS | result: {message}')
-                    if self.amount_consulting_agencies == 3:
-                        logging.info(f'action: recv_WINNERS_req | result: success')
-                    else:
-                        logging.info(f'action: recv_WINNERS_req | result: FAIL')
+                    # logging.info(f'action: receive_client_request WINNERS | result: {message}')
+                    if self.amount_consulting_agencies == 5:
+                        # logging.info(f'action: recv_WINNERS_req | result: success')
+                        bets = list(load_bets())
+                        # logging.info(f'CANT BETS: {len(bets)}')
+                        winners = []
+                        for bet in bets:
+                            if bet.agency != int(message):
+                                continue
+                            if has_won(bet):
+                                winners.append(str(bet.document))
+
+                        Protocol.send_winners(client_sock, winners)
+                        # logging.info(f'action: send_winners | result: success | winners: {winners}')
+                        logging.info(f'action: sorteo | result: success')
                     break
                 elif request == BET_MSG:
                     message = Protocol.receive_client_request(client_sock)
                     bets = Protocol.deserialize_bets(message)
                     Protocol.send_ack(client_sock, len(bets))
                     logging.info(f'action: send_ack | result: success | cantidad: {len(bets)}')
+                    # logging.info(f'BETS {bets[0]} | {bets[1]} | {bets[2]} | {bets[3]} | {bets[4]} | {bets[5]}')
+                    # for bet in bets:
+                    #     print(vars(bet))
                     store_bets(bets)
                     logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
                 else:
@@ -76,6 +90,7 @@ class Server:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
+            self.clients_list.remove(client_sock)
 
     def __accept_new_connection(self):
         """

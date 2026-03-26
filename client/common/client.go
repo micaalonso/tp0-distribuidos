@@ -65,7 +65,6 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
 
 	// Create the connection the server in every loop iteration. Send an
 	c.createClientSocket()
-	defer c.conn.Close()
 
 	file, err := os.Open("/data/agency-" + c.config.ID + ".csv")
 	if err != nil {
@@ -96,7 +95,7 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
             } else {
                 log.Infof("action: send_finished | result: success | client_id: %v", c.config.ID)
             }
-            break
+            return
         }
         if err != nil {
             log.Errorf("action: next_batch | result: fail | error: %v", err)
@@ -133,39 +132,47 @@ func (c *Client) StartClientLoop(sigterm_channel chan os.Signal) {
         c.conn.Close()
     }
 
-	c.AskForWinners(sigterm_channel)
+	// c.AskForWinners(sigterm_channel)
 
-	log.Infof("action: finished_client | result: success | client_id: %v", c.config.ID)
+	// log.Infof("action: finished_client | result: success | client_id: %v", c.config.ID)
 }
 
 func (c *Client) AskForWinners(sigterm_channel chan os.Signal) {
-	if err := c.createClientSocket(); err != nil {
-		log.Errorf("action: create_client_socket | result: fail | error: %v |client_id: %v", err, c.config.ID)
-		return
+	retries := 5
+	for retries > 0 {
+		select {
+			case <-sigterm_channel:
+				log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
+				return
+			default:
+				if err := c.createClientSocket(); err != nil {
+					log.Errorf("action: create_client_socket | result: fail | error: %v |client_id: %v", err, c.config.ID)
+					return
+				}
+
+				if err := send_winners_request(c.conn, c.config.ID); err != nil {
+					log.Errorf("action: send_winners_request | result: fail | error: %v", err)
+					c.conn.Close()
+					time.Sleep(SLEEP_TIME * time.Millisecond)
+					retries -= 1
+					continue
+				}
+
+				msg, err := read_winners(c.conn)
+				if err != nil {
+					log.Errorf("action: read_winners | result: fail | error: %v", err)
+					c.conn.Close()
+					time.Sleep(SLEEP_TIME * time.Millisecond)
+					retries -= 1
+					continue
+				}
+				log.Infof("action: send_winners_request | result: success | msg: %v", msg)
+				log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", len(msg))
+
+				if c.conn != nil {
+					c.conn.Close()
+				}
+				return
+		}
 	}
-
-	// retries := 0
-	// for retries < 5{
-	// 	select {
-	// 		case <-sigterm_channel:
-	// 			log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
-	// 			return
-	// 		default:
-			
-	// 			if err := send_winners_request(c.conn, c.config.ID); err != nil {
-	// 				log.Errorf("action: send_winners_request | result: fail | error: %v", err)
-	// 				time.Sleep(SLEEP_TIME * time.Millisecond)
-	// 				continue
-	// 			}
-	// 			retries += 1
-	// 			log.Infof("action: send_winners_request | result: success")
-	// 	}
-	// }
-
-	if err := send_winners_request(c.conn, c.config.ID); err != nil {
-		log.Errorf("action: send_winners_request | result: fail | error: %v", err)
-	}
-	log.Infof("action: send_winners_request | result: success")
-
-	c.conn.Close()
 }
