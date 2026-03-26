@@ -189,3 +189,6 @@ Respetar el formato y contenido las entradas de logs descritas en los ejercicios
 
 ## Ejercicio 8
 Para este ejercicio, se utilizó la librería threading. Y luego, por cada vez que se una un cliente, se creará un hilo del tipo no deamon, ya que se debe esperar a que todos los hilos temrinen su ejecución para que el hilo main pueda terminar. Para evitar raise conditions de los recursos compartidos (conteo de la cantidad de agencias que terminaron y la escritura y lectura de las apuestas utilizando store_bets y load_bets) se implementaron locks.
+
+## Tests
+![alt text](docs_Readme/image.png)
