@@ -183,3 +183,10 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación.  Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 Respetar el formato y contenido las entradas de logs descritas en los ejercicios, pues son las que se chequean en cada uno de los tests.
+
+
+# Solución
+
+## Ejercicio 4
+Del lado del servidor, se utilizó la librería signal. Luego, en caso de recibir la señal SIGTERM, el server llamará a su función shutdown, la cual se encarga de terminar correctamente el servidor. Por el lado del cliente, se crea un channel que queda a la espera de recibir la señal SIGTERM, y en caso de recibirla se terminará con el loop.
+Para probar este ejercicio, primero ejecutar `make docker-compose-up` y luego `make docker-compose-down` en otra terminal.
